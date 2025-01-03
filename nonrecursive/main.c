@@ -9,11 +9,11 @@
 static InputData input_data;
 static Solution best_solution;
 
-static void solve(Sumset const start_a, Sumset const start_b)
+static void solve(Sumset const initial_a, Sumset const initial_b)
 {
     PairStack stack;
     pair_stack_init(&stack);
-    pair_stack_push(&stack, pair_construct(shared_sumset_init(start_a), shared_sumset_init(start_b)));
+    pair_stack_push(&stack, pair_construct(shared_sumset_init(initial_a), shared_sumset_init(initial_b)));
 
     while (!pair_stack_empty(&stack)) {
         Pair pair = pair_stack_pop(&stack);
@@ -31,11 +31,12 @@ static void solve(Sumset const start_a, Sumset const start_b)
         Sumset* b = shared_sumset_get(sh_b);
 
         if (is_sumset_intersection_trivial(a, b)) {
-            for (size_t i = a->last; i <= MAX_D; ++i) {
+            for (size_t i = a->last; i <= input_data.d; ++i) {
                 if (!does_sumset_contain(b, i)) {
                     Sumset new_a;
                     sumset_add(&new_a, a, i);
-                    pair_stack_push(&stack, pair_construct(shared_sumset_init(new_a), sh_b));
+                    SharedSumset* new_a_sh = shared_sumset_init_child(new_a, sh_a);
+                    pair_stack_push(&stack, pair_construct(new_a_sh, sh_b));
                     shared_sumset_inc_ref(sh_b); // new copy on the stack
                 }
             }

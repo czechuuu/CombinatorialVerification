@@ -35,7 +35,7 @@ static void _pair_stack_resize(PairStack* stack)
 
 void pair_stack_push(PairStack* stack, Pair pair)
 {
-    pair_stack_resize(stack);
+    _pair_stack_resize(stack);
     stack->pairs[stack->size++] = pair;
 }
 
