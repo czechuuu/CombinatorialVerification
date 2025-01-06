@@ -35,7 +35,7 @@ static void solve(Sumset const initial_a, Sumset const initial_b)
                 if (!does_sumset_contain(b, i)) {
                     Sumset new_a;
                     sumset_add(&new_a, a, i);
-                    SharedSumset* new_a_sh = shared_sumset_init_child(new_a, sh_a);
+                    SharedSumset* new_a_sh = shared_sumset_init_parent(new_a, sh_a);
                     pair_stack_push(&stack, pair_construct(new_a_sh, sh_b));
                     shared_sumset_inc_ref(sh_b); // new copy on the stack
                 }

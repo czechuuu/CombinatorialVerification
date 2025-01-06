@@ -14,6 +14,10 @@ add_link_options(-pthread)
 # add_compile_options(-fsanitize=thread)
 # add_link_options(-fsanitize=thread)
 
+# TODO remove for profling
+# add_compile_options(-pg)
+# add_link_options(-pg)
+
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(-march=native -O3)
 endif()
