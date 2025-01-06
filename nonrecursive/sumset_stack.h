@@ -2,7 +2,9 @@
 #include "nonrecursive/shared_sumset.h"
 #include <stdlib.h>
 
-#define INITIAL_CAPACITY 1
+// TODO store on the stack
+
+#define INITIAL_CAPACITY 512
 
 typedef struct {
     SharedSumset* a;
