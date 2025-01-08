@@ -2,30 +2,39 @@
 #include "nonrecursive/shared_sumset.h"
 #include <stdlib.h>
 
-#define POOL_SIZE 16384
+#define POOL_BLOCK_SIZE 512
 
-static SharedSumset pool[POOL_SIZE]; // a free sumset has ref_count = -1
-static size_t pool_free_sumsets = POOL_SIZE;
-static int pool_free_index = 0;
+// ! POOL CLOSE MUST BE CALLED AT THE END OF THE PROGRAM
+typedef struct block{
+    SharedSumset* block_begining;
+    struct block* next;
+} block;
 
-// must be called before any pool_new
-static inline void pool_init()
-{
-    for (size_t i = 0; i < POOL_SIZE; ++i) {
-        pool[i].ref_count = -1;
-    }
-}
+static int pool_free_sumsets = 0;
+static SharedSumset* pool_list_head = NULL;
+static block* pool_blocks = NULL;
 
-// allocates a new SharedSumset on the heap using malloc
-static inline SharedSumset* _pool_new_heap(Sumset const sumset)
-{
-    SharedSumset* shared_sumset = (SharedSumset*)malloc(sizeof(SharedSumset));
-    if (!shared_sumset) {
+static inline void _pool_alloc_new_block(){
+    SharedSumset* new_block = malloc(sizeof(SharedSumset) * POOL_BLOCK_SIZE);
+    if(!new_block){
         exit(1);
     }
 
-    shared_sumset_initialize(shared_sumset, sumset);
-    return shared_sumset;
+    for (size_t i = 0; i < POOL_BLOCK_SIZE - 1; i++) {
+        new_block[i].next = new_block + i + 1;
+    }
+    new_block[POOL_BLOCK_SIZE - 1].next = NULL;
+
+    pool_list_head = new_block;
+    pool_free_sumsets = POOL_BLOCK_SIZE; // ! copilot thinks -1
+
+    block* new_block_info = malloc(sizeof(block));
+    if(!new_block_info){
+        exit(1);
+    }
+    new_block_info->block_begining = new_block;
+    new_block_info->next = pool_blocks;
+    pool_blocks = new_block_info;
 }
 
 // tries to allocate a new SharedSumset from the pool
@@ -33,33 +42,22 @@ static inline SharedSumset* _pool_new_heap(Sumset const sumset)
 static inline SharedSumset* pool_new(Sumset const sumset)
 {
     if (pool_free_sumsets == 0) { 
-        return _pool_new_heap(sumset);
+        _pool_alloc_new_block();
     }
 
-    // cyclic find free index
-    while (pool[pool_free_index].ref_count != -1) {
-        pool_free_index = (pool_free_index + 1) % POOL_SIZE;
-    }
-
-    SharedSumset* shared_sumset = pool + pool_free_index;
-    shared_sumset_initialize(shared_sumset, sumset);
-
-    pool_free_index = (pool_free_index + 1) % POOL_SIZE;
+    SharedSumset* new_sumset = pool_list_head;
+    pool_list_head = pool_list_head->next;
     pool_free_sumsets--;
-    return shared_sumset;
+
+    shared_sumset_initialize(new_sumset, sumset);
+    return new_sumset;
 }
 
-// frees a SharedSumset, either by setting it as free in the pool
-// or if its on the heap by calling free
-static inline void _pool_free(SharedSumset* shared_sumset)
+static inline void _pool_give_back(SharedSumset* shared_sumset)
 {
-    ssize_t index = shared_sumset - pool;
-    if (index < 0 || index >= POOL_SIZE) {
-        free(shared_sumset);
-    } else {
-        pool_free_sumsets++;
-        shared_sumset->ref_count = -1;
-    }
+    shared_sumset->next = pool_list_head;
+    pool_list_head = shared_sumset;
+    pool_free_sumsets++;
 }
 
 static inline void pool_release(SharedSumset* shared_sumset)
@@ -69,6 +67,17 @@ static inline void pool_release(SharedSumset* shared_sumset)
         if(shared_sumset->parent){
             pool_release(shared_sumset->parent); // TODO iterative?
         }
-        _pool_free(shared_sumset);
+        _pool_give_back(shared_sumset);
+    }
+}
+
+static inline void pool_close()
+{
+    block* current_block = pool_blocks;
+    while(current_block){
+        block* next = current_block->next;
+        free(current_block->block_begining);
+        free(current_block);
+        current_block = next;
     }
 }

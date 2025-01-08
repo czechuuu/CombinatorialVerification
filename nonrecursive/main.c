@@ -15,7 +15,6 @@ static void solve(Sumset const initial_a, Sumset const initial_b)
 {
     PairStack stack;
     pair_stack_init(&stack);
-    pool_init();
     pair_stack_push(&stack, pair_construct(pool_new(initial_a), pool_new(initial_b)));
 
     while (!pair_stack_empty(&stack)) {
@@ -56,6 +55,7 @@ static void solve(Sumset const initial_a, Sumset const initial_b)
     }
 
     pair_stack_destroy(&stack);
+    pool_close();
 }
 
 int main()
