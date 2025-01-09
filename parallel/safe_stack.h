@@ -25,7 +25,7 @@ static inline SafeStackPair safe_stack_pair_construct(SmartSumset* a, SmartSumse
 
 typedef struct SafeStack {
     SafeStackPair* stack;
-    size_t size;
+    atomic_size_t size; // atomic to check size without taking the mutex
     size_t capacity;
     pthread_mutex_t mutex;
     pthread_cond_t delay;
@@ -34,11 +34,16 @@ typedef struct SafeStack {
     bool done;
 } SafeStack;
 
+static inline size_t safe_stack_size(SafeStack* stack)
+{
+    return atomic_load(&stack->size);
+}
+
 // Initialize a safe stack.
 // Must be called once before using the stack, and from a single thread only.
 static inline void safe_stack_init(SafeStack* stack, InputData* input_data)
 {
-    stack->size = 0;
+    atomic_store(&stack->size, 0);
     stack->capacity = INITIAL_CAPACITY;
     stack->stack = malloc(sizeof(SafeStackPair) * stack->capacity);
     if (!stack->stack) {
@@ -55,7 +60,7 @@ static inline void safe_stack_init(SafeStack* stack, InputData* input_data)
 // Mutex must be taken before calling this.
 static inline void _unsafe_safe_stack_resize(SafeStack* stack)
 {
-    if (stack->size == stack->capacity) {
+    if (atomic_load(&stack->size) == stack->capacity) {
         stack->capacity *= 2;
         stack->stack = realloc(stack->stack, sizeof(SmartSumset) * stack->capacity);
         if (!stack->stack) {
@@ -67,7 +72,7 @@ static inline void _unsafe_safe_stack_resize(SafeStack* stack)
 static inline void _unsafe_safe_stack_push(SafeStack* stack, SafeStackPair pair)
 {
     _unsafe_safe_stack_resize(stack); // ensure there is enough space
-    stack->stack[stack->size++] = pair; // add to the stack
+    stack->stack[atomic_fetch_add(&stack->size, 1)] = pair; // add to the stack
 }
 
 static inline void safe_stack_push(SafeStack* stack, SafeStackPair pair)
@@ -84,13 +89,13 @@ static inline void safe_stack_push(SafeStack* stack, SafeStackPair pair)
 static inline SafeStackPair safe_stack_pop(SafeStack* stack){
     ASSERT_ZERO(pthread_mutex_lock(&stack->mutex));
 
-    if(stack->size == 0){ // can't pop
+    if(atomic_load(&stack->size) == 0){ // can't pop
         stack->threads_waiting++;
         if(stack->threads_waiting == stack->max_threads){ // everything is done, end the program
             stack->done = true;
             ASSERT_ZERO(pthread_cond_broadcast(&stack->delay));
         } else{
-            while(stack->size == 0){ // wait for something to be pushed
+            while(atomic_load(&stack->size) == 0){ // wait for something to be pushed
                 ASSERT_ZERO(pthread_cond_wait(&stack->delay, &stack->mutex));
             }
         } 
@@ -103,7 +108,7 @@ static inline SafeStackPair safe_stack_pop(SafeStack* stack){
         }
     }
 
-    SafeStackPair pair = stack->stack[--stack->size]; // pop from the stack
+    SafeStackPair pair = stack->stack[atomic_fetch_sub(&stack->size, 1) - 1]; // pop from the stack
     ASSERT_ZERO(pthread_mutex_unlock(&stack->mutex));
     return pair;
 }

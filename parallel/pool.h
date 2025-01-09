@@ -16,7 +16,12 @@ typedef struct {
     block* blocks_list;
 } Pool;
 
-
+static inline void pool_init(Pool* pool)
+{
+    pool->free_sumsets = 0;
+    pool->list_head = NULL;
+    pool->blocks_list = NULL;
+}
 
 static inline void _pool_alloc_new_block(Pool* pool){
     SmartSumset* new_block = malloc(sizeof(SmartSumset) * POOL_BLOCK_SIZE);
