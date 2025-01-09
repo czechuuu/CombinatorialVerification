@@ -6,7 +6,7 @@
 
 // ! POOL CLOSE MUST BE CALLED AT THE END OF THE PROGRAM
 typedef struct block{
-    SharedSumset* block_begining;
+    SharedSumset* block_beginning;
     struct block* next;
 } block;
 
@@ -32,14 +32,14 @@ static inline void _pool_alloc_new_block(){
     if(!new_block_info){
         exit(1);
     }
-    new_block_info->block_begining = new_block;
+    new_block_info->block_beginning = new_block;
     new_block_info->next = pool_blocks;
     pool_blocks = new_block_info;
 }
 
 // tries to allocate a new SharedSumset from the pool
 // if the pool is full, it will allocate on the heap
-static inline SharedSumset* pool_new(Sumset const sumset)
+static inline SharedSumset* pool_new_from_existing(Sumset const sumset)
 {
     if (pool_free_sumsets == 0) { 
         _pool_alloc_new_block();
@@ -50,6 +50,23 @@ static inline SharedSumset* pool_new(Sumset const sumset)
     pool_free_sumsets--;
 
     shared_sumset_initialize(new_sumset, sumset);
+    return new_sumset;
+}
+
+static inline SharedSumset* pool_new_empty(){
+    if (pool_free_sumsets == 0) { 
+        _pool_alloc_new_block();
+    }
+
+    SharedSumset* new_sumset = pool_list_head;
+    pool_list_head = pool_list_head->next;
+    pool_free_sumsets--;
+
+    new_sumset->ref_count = 1;
+    // val will be overwritten when we use it as a store for the addition
+    // parent will be set
+    // next is irrelevant
+
     return new_sumset;
 }
 
@@ -76,7 +93,7 @@ static inline void pool_close()
     block* current_block = pool_blocks;
     while(current_block){
         block* next = current_block->next;
-        free(current_block->block_begining);
+        free(current_block->block_beginning);
         free(current_block);
         current_block = next;
     }

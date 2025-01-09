@@ -15,7 +15,7 @@ static void solve(Sumset const initial_a, Sumset const initial_b)
 {
     PairStack stack;
     pair_stack_init(&stack);
-    pair_stack_push(&stack, pair_construct(pool_new(initial_a), pool_new(initial_b)));
+    pair_stack_push(&stack, pair_construct(pool_new_from_existing(initial_a), pool_new_from_existing(initial_b)));
 
     while (!pair_stack_empty(&stack)) {
         Pair pair = pair_stack_pop(&stack);
@@ -35,9 +35,8 @@ static void solve(Sumset const initial_a, Sumset const initial_b)
         if (is_sumset_intersection_trivial(a, b)) {
             for (size_t i = a->last; i <= input_data.d; ++i) {
                 if (!does_sumset_contain(b, i)) {
-                    Sumset new_a;
-                    sumset_add(&new_a, a, i);
-                    SharedSumset* new_a_sh = pool_new(new_a);
+                    SharedSumset* new_a_sh = pool_new_empty();
+                    sumset_add(shared_sumset_get_ptr(new_a_sh), a, i);
                     shared_sumset_set_parent(new_a_sh, sh_a);
                     pair_stack_push(&stack, pair_construct(new_a_sh, sh_b));
                     shared_sumset_inc_ref(sh_b); // new copy on the stack
