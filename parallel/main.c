@@ -2,6 +2,7 @@
 
 #include "common/io.h"
 #include "common/sumset.h"
+#include "parallel/smart_sumset.h"
 
 int main()
 {
