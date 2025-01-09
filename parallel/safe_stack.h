@@ -5,6 +5,7 @@
 #include "common/err.h"
 #include <stdatomic.h>
 #include <pthread.h>
+#include <stdlib.h>
 
 // functions with _unsafe prefix are not thread safe
 // and mutex must be taken before calling them
@@ -39,7 +40,7 @@ static inline void safe_stack_init(SafeStack* stack, InputData* input_data)
 {
     stack->size = 0;
     stack->capacity = INITIAL_CAPACITY;
-    stack->stack = (SmartSumset*) malloc(sizeof(SafeStackPair) * stack->capacity);
+    stack->stack = malloc(sizeof(SafeStackPair) * stack->capacity);
     if (!stack->stack) {
         exit(1);
     }
@@ -56,7 +57,7 @@ static inline void _unsafe_safe_stack_resize(SafeStack* stack)
 {
     if (stack->size == stack->capacity) {
         stack->capacity *= 2;
-        stack->stack = (SmartSumset*) realloc(stack->stack, sizeof(SmartSumset) * stack->capacity);
+        stack->stack = realloc(stack->stack, sizeof(SmartSumset) * stack->capacity);
         if (!stack->stack) {
             exit(1);
         }

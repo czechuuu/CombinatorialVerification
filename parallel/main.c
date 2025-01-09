@@ -3,6 +3,8 @@
 #include "common/io.h"
 #include "common/sumset.h"
 #include "parallel/smart_sumset.h"
+#include "parallel/safe_stack.h"
+#include "parallel/pool.h"
 
 int main()
 {
