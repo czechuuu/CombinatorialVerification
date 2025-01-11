@@ -92,8 +92,8 @@ static inline void _pool_give_back(Pool* pool, SmartSumset* smart_sumset)
 
 static inline void pool_release(Pool* pool, SmartSumset* smart_sumset)
 {
-    smart_sumset_dec_ref(smart_sumset);
-    if (atomic_load(&smart_sumset->ref_count) == 0) {
+    // -1 because it returns the value before the decrement
+    if (smart_sumset_dec_ref(smart_sumset) - 1 == 0) {
         if(smart_sumset->parent){
             pool_release(pool, smart_sumset->parent); // TODO iterative?
         }
