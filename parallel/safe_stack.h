@@ -95,7 +95,7 @@ static inline SafeStackPair safe_stack_pop(SafeStack* stack){
             stack->done = true;
             ASSERT_ZERO(pthread_cond_broadcast(&stack->delay));
         } else{
-            while(atomic_load(&stack->size) == 0){ // wait for something to be pushed
+            while(atomic_load(&stack->size) == 0 && !stack->done){ // wait for something to be pushed
                 ASSERT_ZERO(pthread_cond_wait(&stack->delay, &stack->mutex));
             }
         } 

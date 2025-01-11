@@ -35,3 +35,11 @@ static inline Sumset* smart_sumset_get_ptr(SmartSumset* smart_sumset)
     return &smart_sumset->val;
 }
 
+static inline void smart_sumset_set_parent(SmartSumset* smart_sumset, SmartSumset* parent)
+{
+    smart_sumset->parent = parent;
+    if(parent){
+        smart_sumset_inc_ref(parent);
+    }
+}
+
