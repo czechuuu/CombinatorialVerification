@@ -42,6 +42,7 @@ void run_threads(InputData* input_data, SafeStack* stack, pthread_t* threads, Wo
     }
 
     pool_close(&pool);
+    safe_stack_destroy(stack);
 }
 
 static inline void solution_merge(Solution* best_solution, Solution* worker_solution)

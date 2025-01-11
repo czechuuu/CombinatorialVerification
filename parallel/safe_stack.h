@@ -99,6 +99,7 @@ static inline SafeStackPair safe_stack_pop(SafeStack* stack){
                 ASSERT_ZERO(pthread_cond_wait(&stack->delay, &stack->mutex));
             }
         } 
+        stack->threads_waiting--; // fuck me
 
         if(stack->done){ // if we are done, return an empty pair
             // either we begun the cascade, or were woken up

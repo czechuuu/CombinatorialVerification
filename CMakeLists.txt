@@ -11,8 +11,9 @@ add_compile_options(-Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Wno-u
 add_compile_options(-pthread)
 add_link_options(-pthread)
 
-# add_compile_options(-fsanitize=thread)
-# add_link_options(-fsanitize=thread)
+# uncommentted this
+add_compile_options(-fsanitize=thread)
+add_link_options(-fsanitize=thread)
 
 # TODO remove for profling
 # add_compile_options(-pg)
@@ -20,6 +21,13 @@ add_link_options(-pthread)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(-march=native -O3)
+endif()
+
+# Find clang-tidy - i added
+find_program(CLANG_TIDY_EXE NAMES "clang-tidy")
+if(CLANG_TIDY_EXE)
+    set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_EXE}")
+    set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 
 # Optionally: include-what-you-use to minimize #include-s.
