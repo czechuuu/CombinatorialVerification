@@ -12,8 +12,8 @@ add_compile_options(-pthread)
 add_link_options(-pthread)
 
 # uncommentted this
-add_compile_options(-fsanitize=thread)
-add_link_options(-fsanitize=thread)
+# add_compile_options(-fsanitize=thread)
+# add_link_options(-fsanitize=thread)
 
 # TODO remove for profling
 # add_compile_options(-pg)

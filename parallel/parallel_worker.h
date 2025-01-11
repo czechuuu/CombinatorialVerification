@@ -12,7 +12,7 @@ typedef struct {
 } WorkerData;
 
 // number of unconditional pushes to the stack, before considering recursion
-#define INITIAL_STACK_PUSHES 5
+#define INITIAL_STACK_PUSHES 4
 
 static inline void recursive_solve(Sumset* a, Sumset* b, WorkerData* data)
 {
@@ -45,15 +45,20 @@ static inline void populate_stack(SmartSumset* smart_a, SmartSumset* smart_b, Sa
     Sumset* b = smart_sumset_get_ptr(smart_b);
 
     if (is_sumset_intersection_trivial(a, b)) {
+        SafeStackPairBatch batch;
+        safe_stack_pair_batch_init(&batch);
+
         for (size_t i = a->last; i <= data->input_data->d; i++) {
             if (!does_sumset_contain(b, i)) {
                 SmartSumset* a_with_i = pool_new_empty(pool);
                 sumset_add(smart_sumset_get_ptr(a_with_i), a, i);
                 smart_sumset_set_parent(a_with_i, smart_a);
                 smart_sumset_inc_ref(smart_b); // before pushing to the stack
-                safe_stack_push(stack, safe_stack_pair_construct(a_with_i, smart_b));
+                safe_stack_pair_batch_add(&batch, safe_stack_pair_construct(a_with_i, smart_b));
             }
         }
+        safe_stack_pair_batch_submit(stack, &batch);
+        // its a stack variable, so no need to destroy but keep in mind
     } else if (a->sum == b->sum && get_sumset_intersection_size(a, b) == 2) {
         // saves to a local solution
         if(a->sum > data->best_solution.sum)
