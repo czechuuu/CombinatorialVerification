@@ -4,8 +4,7 @@
 
 #define POOL_BLOCK_SIZE 512
 
-// ! POOL CLOSE MUST BE CALLED AT THE END OF THE PROGRAM
-typedef struct block{
+typedef struct block {
     SmartSumset* block_beginning;
     struct block* next;
 } block;
@@ -23,9 +22,10 @@ static inline void pool_init(Pool* pool)
     pool->blocks_list = NULL;
 }
 
-static inline void _pool_alloc_new_block(Pool* pool){
+static inline void _pool_alloc_new_block(Pool* pool)
+{
     SmartSumset* new_block = malloc(sizeof(SmartSumset) * POOL_BLOCK_SIZE);
-    if(!new_block){
+    if (!new_block) {
         exit(1);
     }
 
@@ -35,10 +35,10 @@ static inline void _pool_alloc_new_block(Pool* pool){
     new_block[POOL_BLOCK_SIZE - 1].next = NULL;
 
     pool->list_head = new_block;
-    pool->free_sumsets = POOL_BLOCK_SIZE; // ! copilot thinks -1
+    pool->free_sumsets = POOL_BLOCK_SIZE;
 
     block* new_block_info = malloc(sizeof(block));
-    if(!new_block_info){
+    if (!new_block_info) {
         exit(1);
     }
     new_block_info->block_beginning = new_block;
@@ -50,7 +50,7 @@ static inline void _pool_alloc_new_block(Pool* pool){
 // if the pool is full, it will allocate on the heap
 static inline SmartSumset* pool_new_from_existing(Pool* pool, Sumset const sumset)
 {
-    if (pool->free_sumsets == 0) { 
+    if (pool->free_sumsets == 0) {
         _pool_alloc_new_block(pool);
     }
 
@@ -62,12 +62,13 @@ static inline SmartSumset* pool_new_from_existing(Pool* pool, Sumset const sumse
     new_sumset->ref_count = 1;
     new_sumset->parent = NULL;
     new_sumset->next = NULL;
-    
+
     return new_sumset;
 }
 
-static inline SmartSumset* pool_new_empty(Pool* pool){
-    if (pool->free_sumsets == 0) { 
+static inline SmartSumset* pool_new_empty(Pool* pool)
+{
+    if (pool->free_sumsets == 0) {
         _pool_alloc_new_block(pool);
     }
 
@@ -94,8 +95,8 @@ static inline void pool_release(Pool* pool, SmartSumset* smart_sumset)
 {
     // -1 because it returns the value before the decrement
     if (smart_sumset_dec_ref(smart_sumset) - 1 == 0) {
-        if(smart_sumset->parent){
-            pool_release(pool, smart_sumset->parent); // TODO iterative?
+        if (smart_sumset->parent) {
+            pool_release(pool, smart_sumset->parent);
         }
         _pool_give_back(pool, smart_sumset);
     }
@@ -104,7 +105,7 @@ static inline void pool_release(Pool* pool, SmartSumset* smart_sumset)
 static inline void pool_close(Pool* pool)
 {
     block* current_block = pool->blocks_list;
-    while(current_block){
+    while (current_block) {
         block* next = current_block->next;
         free(current_block->block_beginning);
         free(current_block);

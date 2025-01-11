@@ -1,10 +1,10 @@
 #pragma once
-#include "common/sumset.h"
-#include "common/io.h"
-#include "parallel/smart_sumset.h"
 #include "common/err.h"
-#include <stdatomic.h>
+#include "common/io.h"
+#include "common/sumset.h"
+#include "parallel/smart_sumset.h"
 #include <pthread.h>
+#include <stdatomic.h>
 #include <stdlib.h>
 
 // functions with _unsafe prefix are not thread safe
@@ -19,7 +19,7 @@ typedef struct SafeStackPair {
 
 static inline SafeStackPair safe_stack_pair_construct(SmartSumset* a, SmartSumset* b)
 {
-    SafeStackPair pair = {a, b};
+    SafeStackPair pair = { a, b };
     return pair;
 }
 
@@ -86,22 +86,23 @@ static inline void safe_stack_push(SafeStack* stack, SafeStackPair pair)
 }
 
 // Blocks until a pair is available to pop, or the program is done.
-static inline SafeStackPair safe_stack_pop(SafeStack* stack){
+static inline SafeStackPair safe_stack_pop(SafeStack* stack)
+{
     ASSERT_ZERO(pthread_mutex_lock(&stack->mutex));
 
-    if(atomic_load(&stack->size) == 0){ // can't pop
+    if (atomic_load(&stack->size) == 0) { // can't pop
         stack->threads_waiting++;
-        if(stack->threads_waiting == stack->max_threads){ // everything is done, end the program
+        if (stack->threads_waiting == stack->max_threads) { // everything is done, end the program
             stack->done = true;
             ASSERT_ZERO(pthread_cond_broadcast(&stack->delay));
-        } else{
-            while(atomic_load(&stack->size) == 0 && !stack->done){ // wait for something to be pushed
+        } else {
+            while (atomic_load(&stack->size) == 0 && !stack->done) { // wait for something to be pushed
                 ASSERT_ZERO(pthread_cond_wait(&stack->delay, &stack->mutex));
             }
-        } 
+        }
         stack->threads_waiting--; // fuck me
 
-        if(stack->done){ // if we are done, return an empty pair
+        if (stack->done) { // if we are done, return an empty pair
             // either we begun the cascade, or were woken up
             // either way we need to finish
             ASSERT_ZERO(pthread_mutex_unlock(&stack->mutex));
@@ -145,16 +146,10 @@ static inline void safe_stack_pair_batch_add(SafeStackPairBatch* batch, SafeStac
 static inline void safe_stack_pair_batch_submit(SafeStack* stack, SafeStackPairBatch* batch)
 {
     ASSERT_ZERO(pthread_mutex_lock(&stack->mutex));
-    for(int i = 0; i < batch->size; i++){
+    for (int i = 0; i < batch->size; i++) {
         _unsafe_safe_stack_push(stack, batch->pairs[i]);
     }
     batch->size = 0;
     ASSERT_ZERO(pthread_cond_broadcast(&stack->delay));
     ASSERT_ZERO(pthread_mutex_unlock(&stack->mutex));
 }
-
-
-
-
-
-

@@ -30,7 +30,7 @@ static inline void recursive_solve(Sumset* a, Sumset* b, WorkerData* data)
         }
     } else if (a->sum == b->sum && get_sumset_intersection_size(a, b) == 2) {
         // saves to a local solution
-        if(a->sum > data->best_solution.sum)
+        if (a->sum > data->best_solution.sum)
             solution_build(&data->best_solution, data->input_data, a, b);
     }
 }
@@ -61,7 +61,7 @@ static inline void populate_stack(SmartSumset* smart_a, SmartSumset* smart_b, Sa
         // its a stack variable, so no need to destroy but keep in mind
     } else if (a->sum == b->sum && get_sumset_intersection_size(a, b) == 2) {
         // saves to a local solution
-        if(a->sum > data->best_solution.sum)
+        if (a->sum > data->best_solution.sum)
             solution_build(&data->best_solution, data->input_data, a, b);
     }
 }

@@ -4,7 +4,7 @@
 #include <stdatomic.h>
 
 typedef struct SmartSumset {
-    Sumset val; 
+    Sumset val;
     atomic_size_t ref_count;
     struct SmartSumset* parent;
     struct SmartSumset* next; // for pool list
@@ -38,8 +38,7 @@ static inline Sumset* smart_sumset_get_ptr(SmartSumset* smart_sumset)
 static inline void smart_sumset_set_parent(SmartSumset* smart_sumset, SmartSumset* parent)
 {
     smart_sumset->parent = parent;
-    if(parent){
+    if (parent) {
         smart_sumset_inc_ref(parent);
     }
 }
-

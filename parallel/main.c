@@ -1,6 +1,5 @@
 #include <pthread.h>
 #include <stddef.h>
-#include <stdio.h> // for debugging
 
 #include "common/io.h"
 #include "common/sumset.h"
