@@ -5,7 +5,7 @@
 #include <sys/types.h>
 
 typedef struct SharedSumset {
-    Sumset val; 
+    Sumset val;
     ssize_t ref_count;
     struct SharedSumset* parent;
     struct SharedSumset* next; // for pool list
@@ -38,7 +38,7 @@ static inline void shared_sumset_initialize(SharedSumset* shared_sumset, Sumset 
 static inline void shared_sumset_set_parent(SharedSumset* shared_sumset, SharedSumset* parent)
 {
     shared_sumset->parent = parent;
-    if(parent){
+    if (parent) {
         shared_sumset_inc_ref(parent);
     }
 }

@@ -5,8 +5,8 @@
 #include "common/sumset.h"
 
 #include "nonrecursive/shared_sumset.h"
-#include "nonrecursive/sumset_stack.h"
 #include "nonrecursive/sumset_pool.h"
+#include "nonrecursive/sumset_stack.h"
 
 static InputData input_data;
 static Solution best_solution;

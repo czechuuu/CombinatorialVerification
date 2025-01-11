@@ -2,8 +2,6 @@
 #include "nonrecursive/shared_sumset.h"
 #include <stdlib.h>
 
-// TODO store on the stack
-
 #define INITIAL_CAPACITY 512
 
 typedef struct {
@@ -13,7 +11,7 @@ typedef struct {
 
 static inline Pair pair_construct(SharedSumset* a, SharedSumset* b)
 {
-    Pair pair = {a, b};
+    Pair pair = { a, b };
     return pair;
 }
 
@@ -28,17 +26,17 @@ static inline void pair_stack_init(PairStack* stack)
     stack->size = 0;
     stack->capacity = INITIAL_CAPACITY;
     stack->pairs = malloc(sizeof(Pair) * stack->capacity);
-    if(!stack->pairs){
+    if (!stack->pairs) {
         exit(1);
     }
 }
 
 static inline void _pair_stack_resize(PairStack* stack)
 {
-    if(stack->size == stack->capacity){
+    if (stack->size == stack->capacity) {
         stack->capacity *= 2;
         stack->pairs = realloc(stack->pairs, sizeof(Pair) * stack->capacity);
-        if(!stack->pairs){
+        if (!stack->pairs) {
             exit(1);
         }
     }

@@ -5,7 +5,7 @@
 #define POOL_BLOCK_SIZE 512
 
 // ! POOL CLOSE MUST BE CALLED AT THE END OF THE PROGRAM
-typedef struct block{
+typedef struct block {
     SharedSumset* block_beginning;
     struct block* next;
 } block;
@@ -14,9 +14,10 @@ static int pool_free_sumsets = 0;
 static SharedSumset* pool_list_head = NULL;
 static block* pool_blocks = NULL;
 
-static inline void _pool_alloc_new_block(){
+static inline void _pool_alloc_new_block()
+{
     SharedSumset* new_block = malloc(sizeof(SharedSumset) * POOL_BLOCK_SIZE);
-    if(!new_block){
+    if (!new_block) {
         exit(1);
     }
 
@@ -29,7 +30,7 @@ static inline void _pool_alloc_new_block(){
     pool_free_sumsets = POOL_BLOCK_SIZE; // ! copilot thinks -1
 
     block* new_block_info = malloc(sizeof(block));
-    if(!new_block_info){
+    if (!new_block_info) {
         exit(1);
     }
     new_block_info->block_beginning = new_block;
@@ -41,7 +42,7 @@ static inline void _pool_alloc_new_block(){
 // if the pool is full, it will allocate on the heap
 static inline SharedSumset* pool_new_from_existing(Sumset const sumset)
 {
-    if (pool_free_sumsets == 0) { 
+    if (pool_free_sumsets == 0) {
         _pool_alloc_new_block();
     }
 
@@ -53,8 +54,9 @@ static inline SharedSumset* pool_new_from_existing(Sumset const sumset)
     return new_sumset;
 }
 
-static inline SharedSumset* pool_new_empty(){
-    if (pool_free_sumsets == 0) { 
+static inline SharedSumset* pool_new_empty()
+{
+    if (pool_free_sumsets == 0) {
         _pool_alloc_new_block();
     }
 
@@ -81,7 +83,7 @@ static inline void pool_release(SharedSumset* shared_sumset)
 {
     _shared_sumset_dec_ref(shared_sumset);
     if (shared_sumset->ref_count == 0) {
-        if(shared_sumset->parent){
+        if (shared_sumset->parent) {
             pool_release(shared_sumset->parent); // TODO iterative?
         }
         _pool_give_back(shared_sumset);
@@ -91,7 +93,7 @@ static inline void pool_release(SharedSumset* shared_sumset)
 static inline void pool_close()
 {
     block* current_block = pool_blocks;
-    while(current_block){
+    while (current_block) {
         block* next = current_block->next;
         free(current_block->block_beginning);
         free(current_block);
