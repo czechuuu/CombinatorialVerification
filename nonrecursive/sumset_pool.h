@@ -64,31 +64,16 @@ static inline SharedSumset* pool_new_empty()
     pool_list_head = pool_list_head->next;
     pool_free_sumsets--;
 
-    new_sumset->ref_count = 1;
-    // val will be overwritten when we use it as a store for the addition
-    // parent will be set
-    // next is irrelevant
-
     return new_sumset;
 }
 
-static inline void _pool_give_back(SharedSumset* shared_sumset)
+static inline void pool_give_back(SharedSumset* shared_sumset)
 {
     shared_sumset->next = pool_list_head;
     pool_list_head = shared_sumset;
     pool_free_sumsets++;
 }
 
-static inline void pool_release(SharedSumset* shared_sumset)
-{
-    _shared_sumset_dec_ref(shared_sumset);
-    if (shared_sumset->ref_count == 0) {
-        if (shared_sumset->parent) {
-            pool_release(shared_sumset->parent); // TODO iterative?
-        }
-        _pool_give_back(shared_sumset);
-    }
-}
 
 static inline void pool_close()
 {

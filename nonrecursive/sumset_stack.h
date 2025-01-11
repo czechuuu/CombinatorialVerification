@@ -6,7 +6,7 @@
 
 typedef struct {
     SharedSumset* a;
-    SharedSumset* b;
+    SharedSumset* b; // if second is null its a signal to free the first
 } Pair;
 
 static inline Pair pair_construct(SharedSumset* a, SharedSumset* b)

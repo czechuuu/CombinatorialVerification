@@ -15,12 +15,23 @@ static void solve(Sumset const initial_a, Sumset const initial_b)
 {
     PairStack stack;
     pair_stack_init(&stack);
-    pair_stack_push(&stack, pair_construct(pool_new_from_existing(initial_a), pool_new_from_existing(initial_b)));
+    SharedSumset* starting_a = pool_new_from_existing(initial_a);
+    SharedSumset* starting_b = pool_new_from_existing(initial_b);
+    // memory freeing requests
+    pair_stack_push(&stack, pair_construct(starting_a, NULL));
+    pair_stack_push(&stack, pair_construct(starting_b, NULL));
+    // starting pair
+    pair_stack_push(&stack, pair_construct(starting_a, starting_b));
 
     while (!pair_stack_empty(&stack)) {
         Pair pair = pair_stack_pop(&stack);
         SharedSumset* sh_a = pair.a;
         SharedSumset* sh_b = pair.b;
+
+        if(sh_b == NULL) {
+            pool_give_back(sh_a);
+            continue;
+        }
 
         // swap if wrong order
         if (shared_sumset_get(sh_a).sum > shared_sumset_get(sh_b).sum) {
@@ -37,9 +48,8 @@ static void solve(Sumset const initial_a, Sumset const initial_b)
                 if (!does_sumset_contain(b, i)) {
                     SharedSumset* new_a_sh = pool_new_empty();
                     sumset_add(shared_sumset_get_ptr(new_a_sh), a, i);
-                    shared_sumset_set_parent(new_a_sh, sh_a);
+                    pair_stack_push(&stack, pair_construct(new_a_sh, NULL));
                     pair_stack_push(&stack, pair_construct(new_a_sh, sh_b));
-                    shared_sumset_inc_ref(sh_b); // new copy on the stack
                 }
             }
         } else if (a->sum == b->sum && get_sumset_intersection_size(a, b) == 2) {
@@ -47,10 +57,6 @@ static void solve(Sumset const initial_a, Sumset const initial_b)
                 solution_build(&best_solution, &input_data, a, b);
             }
         }
-
-        // potentially free the memory if it isn't anywhere on the stack anymore
-        pool_release(sh_a);
-        pool_release(sh_b);
     }
 
     pair_stack_destroy(&stack);
