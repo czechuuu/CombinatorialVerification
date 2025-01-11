@@ -27,7 +27,7 @@ static inline void _pool_alloc_new_block()
     new_block[POOL_BLOCK_SIZE - 1].next = NULL;
 
     pool_list_head = new_block;
-    pool_free_sumsets = POOL_BLOCK_SIZE; // ! copilot thinks -1
+    pool_free_sumsets = POOL_BLOCK_SIZE;
 
     block* new_block_info = malloc(sizeof(block));
     if (!new_block_info) {

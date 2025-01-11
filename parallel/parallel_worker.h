@@ -9,6 +9,7 @@ typedef struct {
     InputData* input_data;
     SafeStack* stack;
     Solution best_solution;
+    bool* error;
 } WorkerData;
 
 // number of unconditional pushes to the stack, before considering recursion
@@ -76,7 +77,7 @@ void* worker_thread(void* arg)
     WorkerData* data = (WorkerData*)arg;
 
     Pool pool;
-    pool_init(&pool);
+    pool_init(&pool, data->error);
 
     int iteration = 0;
     while (true) {

@@ -13,21 +13,31 @@ typedef struct {
     size_t free_sumsets;
     SmartSumset* list_head;
     block* blocks_list;
+    bool* error;
 } Pool;
 
-static inline void pool_init(Pool* pool)
+static inline void pool_init(Pool* pool, bool* error)
 {
     pool->free_sumsets = 0;
     pool->list_head = NULL;
     pool->blocks_list = NULL;
+    pool->error = error;
+}
+
+static inline void exit_if_null(Pool* pool, void* ptr)
+{
+    if (!ptr) {
+        if (pool->error) {
+            *pool->error = true;
+        }
+        exit(1);
+    }
 }
 
 static inline void _pool_alloc_new_block(Pool* pool)
 {
     SmartSumset* new_block = malloc(sizeof(SmartSumset) * POOL_BLOCK_SIZE);
-    if (!new_block) {
-        exit(1);
-    }
+    exit_if_null(pool, new_block);
 
     for (size_t i = 0; i < POOL_BLOCK_SIZE - 1; i++) {
         new_block[i].next = new_block + i + 1;
@@ -38,9 +48,8 @@ static inline void _pool_alloc_new_block(Pool* pool)
     pool->free_sumsets = POOL_BLOCK_SIZE;
 
     block* new_block_info = malloc(sizeof(block));
-    if (!new_block_info) {
-        exit(1);
-    }
+    exit_if_null(pool, new_block_info);
+
     new_block_info->block_beginning = new_block;
     new_block_info->next = pool->blocks_list;
     pool->blocks_list = new_block_info;

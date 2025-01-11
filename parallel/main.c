@@ -22,9 +22,11 @@ void run_threads(InputData* input_data, SafeStack* stack, pthread_t* threads, Wo
     // prepare the stack
     safe_stack_init(stack, input_data);
     Pool pool; // by far not the most efficient way to get the two initial sumsets, but it works
-    pool_init(&pool);
+    pool_init(&pool, NULL);
     SafeStackPair initial_pair = get_initial_pair(input_data, &pool);
     safe_stack_push(stack, initial_pair);
+
+    bool error = false;
 
     // start the threads
     for (size_t i = 0; i < input_data->t; i++) {
@@ -32,6 +34,7 @@ void run_threads(InputData* input_data, SafeStack* stack, pthread_t* threads, Wo
         worker_data[i].stack = stack;
         // each thread has their own solution which needs to be merged at the end
         solution_init(&worker_data[i].best_solution);
+        worker_data[i].error = &error;
         pthread_create(&threads[i], NULL, worker_thread, &worker_data[i]);
     }
 
@@ -42,6 +45,10 @@ void run_threads(InputData* input_data, SafeStack* stack, pthread_t* threads, Wo
 
     pool_close(&pool);
     safe_stack_destroy(stack);
+
+    if(error) {
+        exit(1);
+    }
 }
 
 static inline void solution_merge(Solution* best_solution, Solution* worker_solution)
