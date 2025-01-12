@@ -43,13 +43,13 @@ def measure_scalability(runs):
     for d in ds:
         # Run reference program for t=1 only
         t = 1
-        ref_time, ref_mem, ref_std_dev, ref_success, ref_times = run_program("build/reference/reference", t, d, runs)
+        ref_time, ref_mem, ref_std_dev, ref_success, ref_times = run_program("../build/reference/reference", t, d, runs)
         if not ref_success:
             print(f"Reference program failed for d={d}, t={t}")
             continue
 
         for t in threads:
-            par_time, par_mem, par_std_dev, par_success, par_times = run_program("build/parallel/parallel", t, d, runs)
+            par_time, par_mem, par_std_dev, par_success, par_times = run_program("../build/parallel/parallel", t, d, runs)
             if not par_success:
                 scalability = -1
             else:

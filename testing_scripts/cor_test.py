@@ -34,8 +34,8 @@ def test_parallel_against_reference(num_tests=1000):
         input_data = generate_test_case()
         
         # Uruchamianie programów
-        parallel_output, parallel_error = run_program('./build/parallel/parallel', input_data)
-        reference_output, reference_error = run_program('./build/reference/reference', input_data)
+        parallel_output, parallel_error = run_program('../build/parallel/parallel', input_data)
+        reference_output, reference_error = run_program('../build/reference/reference', input_data)
         
         # Porównanie tylko pierwszej linii wyjścia
         parallel_first_line = parallel_output.splitlines()[0] if parallel_output else ""
